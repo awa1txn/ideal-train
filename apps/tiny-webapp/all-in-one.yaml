@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tiny-webapp
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tiny-webapp
+  template:
+    metadata:
+      labels:
+        app: tiny-webapp
+    spec:
+      containers:
+      - name: webapp
+        image: ghcr.io/kljensen/hello-world-http:latest
+        env:
+        - name: HOST
+          value: "0.0.0.0"
+        - name: PORT
+          value: "8000"
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            cpu: 50m
+            memory: 16Mi
+          requests:
+            cpu: 10m
+            memory: 8Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tiny-webapp-svc
+  namespace: app
+spec:
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+  selector:
+    app: tiny-webapp
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tiny-webapp-ingress
+  namespace: app
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: app.localhost
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tiny-webapp-svc
+            port:
+              number: 80
