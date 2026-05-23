@@ -9,7 +9,6 @@ metadata:
   name: tiny-webapp
   namespace: app
 spec:
-  replicas: 1 # This acts as the initial starting count before HPA takes over
   selector:
     matchLabels:
       app: tiny-webapp
