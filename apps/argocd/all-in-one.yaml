@@ -45,7 +45,8 @@ metadata:
   namespace: argocd
 spec:
   selector:
-    app: argocd-server
+    app.kubernetes.io/instance: argocd
+    app.kubernetes.io/name: argocd-server
   ports:
   - name: http
     protocol: TCP
