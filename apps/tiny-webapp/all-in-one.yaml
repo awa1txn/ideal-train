@@ -9,7 +9,7 @@ metadata:
   name: tiny-webapp
   namespace: app
 spec:
-  replicas: 1
+  replicas: 1 # This acts as the initial starting count before HPA takes over
   selector:
     matchLabels:
       app: tiny-webapp
@@ -33,7 +33,7 @@ spec:
             cpu: 50m
             memory: 16Mi
           requests:
-            cpu: 10m
+            cpu: 10m # HPA uses this value to calculate scaling thresholds
             memory: 8Mi
 ---
 apiVersion: v1
@@ -69,3 +69,23 @@ spec:
             name: tiny-webapp-svc
             port:
               number: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: tiny-webapp-hpa
+  namespace: app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: tiny-webapp
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
